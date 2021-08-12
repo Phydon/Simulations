@@ -17,7 +17,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 PURPLE = (128, 0, 128)
 ORANGE = (255, 165, 0)
-GREY = (128, 128, 128)
+GREY = (50, 50, 50)
 TURQUOISE = (64, 224, 208)
 
 # setting properties
@@ -53,6 +53,7 @@ class Entity():
         self.pheromone_colour = pheromone_colour
         self.width = width
         self.height = height
+        # define safezone / searchzone for entities
 
         # load and transform image
         self.image = pygame.transform.scale(pygame.image.load(
@@ -102,21 +103,43 @@ class Behavior():
     def __init__(self, name):
         self. name = name
 
-    def search_food():
-        pass
+    def search_food(searcher, food):
+        # search food, if food found -> move to food
+        FOOD_HIT = pygame.USEREVENT + 1
+        if searcher.colliderect(food):
+            pygame.event.post(pygame.event.Event(FOOD_HIT))
+            food = False  # remove food
+            # searcher should return home
 
     def return_home():
         pass
 
     def escape():
+        # if hunter enters safezone -> escape in opposite direction
         pass
 
-    def hunt():
-        pass
+    def hunt(hunter, quarry):
+        # search quarry, if quarry found -> follow till catched
+        QUARRY_HIT = pygame.USEREVENT + 1
+        if hunter.colliderect(quarry):
+            pygame.event.post(pygame.event.Event(QUARRY_HIT))
+            # something.remove(quarry)
+            del(quarry)
+            pygame.time.delay(500)
+
+
+def place_food(food):  # you need to create a variable 'food' inside the main function and set it to 'True'
+    if 1:
+        pygame.draw.rect(
+            displaysurface,
+            GREEN,
+            (300, 100, 10, 10))
+        return food == True
+    return food == False
 
 
 def draw_window():  # displaying the window and the borders
-    displaysurface.fill(BLACK)
+    displaysurface.fill(GREY)
     pygame.draw.rect(displaysurface, WHITE, border_right)
     pygame.draw.rect(displaysurface, WHITE, border_top)
     pygame.draw.rect(displaysurface, WHITE, border_down)
@@ -147,8 +170,11 @@ def simulation():  # main function -> setting FPS and runnig game loop
         ant_size_y)
     entity_position2 = pygame.Rect(450, 300, Ant2.width, Ant2.height)
 
+    # drawing the screen
     draw_window()
 
+    # simulation loop
+    food = True
     FramesPerSec = pygame.time.Clock()
     run = True
     while run:
@@ -156,15 +182,23 @@ def simulation():  # main function -> setting FPS and runnig game loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                pygame.quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+                    pygame.quit()
 
+        # placing food in world
+        place_food(food)
+
+        # creating entites and move them around
         Ant.entity_movement(entity_position)
         Ant.draw_entity(entity_position)
 
         Ant2.entity_movement(entity_position2)
         Ant2.draw_entity(entity_position2)
 
-    pygame.quit()
-
 
 if __name__ == '__main__':
+    pygame.init()
     simulation()
