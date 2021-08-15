@@ -97,28 +97,23 @@ class Food(Objects):
 
         self.position = pg.Rect(
             random.choice([
-                300 - settings['food_position_x'],
-                300 + settings['food_position_x']]),
+                random.randrange(100, 250) - settings['food_position_x'],
+                random.randrange(250, 400) + settings['food_position_x']]),
             random.choice([
-                200 - settings['food_position_y'],
-                400 + settings['food_position_y']]),
+                random.randrange(100, 250) - settings['food_position_y'],
+                random.randrange(250, 400) + settings['food_position_y']]),
             settings['food_width'],
             settings['food_height'])
 
-        self.food = 0
 
-    # you need to create a variable 'food' inside the main function and set it
-    # to 'True'
+class Home(Objects):
+    def __init__(self, imagefolder, image):
+        self.image = pg.transform.scale(pg.image.load(
+            os.path.join(imagefolder, image)), (settings['home_width'], settings['home_height']))
+        self.rect = self.image.get_rect()
 
-    def place_food(self, settings):
-        if not self.food:
-            surface.blit(
-                self.image, (settings['food_position_x'], settings['food_position_y']))
-            self.food = 0
-            return self.food
-
-        print('Set self.food = 1')
-        return self.food
+        self.position = pg.Rect(
+            300 - settings['home_width'] // 2, 300 - settings['home_width'] // 2, settings['home_width'], settings['home_height'])
 
 
 # main function -----------------------------------------------------------
@@ -131,13 +126,15 @@ def simulation(settings):
 
     ants = [Entity(
         settings['LIGHTRED'],
-        'simulations\\ants\\assets',
+        settings['ASSETS_PATH'],
         'whitepixel.jpg',
         settings)
         for _ in range(settings['number_ants'])]
 
-    meals = [Food('simulations\\ants\\assets', 'darkgreenpixel.jpg')
+    meals = [Food(settings['ASSETS_PATH'], 'darkgreenpixel.jpg')
              for _ in range(settings['number_food'])]
+
+    home = Home(settings['ASSETS_PATH'], 'orangepixel.jpg')
 
     # setting FPS and runnig simulation loop
     print('Simulation started')
@@ -168,10 +165,14 @@ def simulation(settings):
 
         for meal in meals:
             meal.draw_obj(meal.position)
-            # meal.place_food(settings)
-            meal.check_collision(ant)
+            # meal.check_collision(ant)
+
+        home.draw_obj(home.position)
 
         pg.display.update()
+
+    pg.time.wait(1000)
+    pg.quit()
 
 
 if __name__ == '__main__':
