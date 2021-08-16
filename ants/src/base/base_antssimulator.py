@@ -49,9 +49,9 @@ class Entity(Objects):
         self.position = pg.Rect(
             random.choice([
                 settings['home_x'] - settings['start_variance'],
-                settings['home_y'] + settings['start_variance']]),
+                settings['home_x'] + settings['start_variance']]),
             random.choice([
-                settings['home_x'] - settings['start_variance'] - 1,
+                settings['home_y'] - settings['start_variance'] - 1,
                 settings['home_y'] + settings['start_variance'] + 1]),
             settings['entity_width'],
             settings['entity_height'])
@@ -166,11 +166,13 @@ class Food(Objects):
 
         self.position = pg.Rect(
             random.choice([
-                random.randrange(100, 250) - settings['food_position_x'],
-                random.randrange(250, 400) + settings['food_position_x']]),
+                random.randrange(
+                    100, settings['WIDTH'] // 2) - settings['food_position_x'],
+                random.randrange(settings['WIDTH'] // 2, settings['WIDTH'] - 100) + settings['food_position_x']]),
             random.choice([
-                random.randrange(100, 250) - settings['food_position_y'],
-                random.randrange(250, 400) + settings['food_position_y']]),
+                random.randrange(
+                    100, settings['HEIGHT'] // 2) - settings['food_position_y'],
+                random.randrange(settings['HEIGHT'] // 2, settings['HEIGHT'] - 100) + settings['food_position_y']]),
             settings['food_width'],
             settings['food_height'])
 
