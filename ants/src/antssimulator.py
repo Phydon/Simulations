@@ -19,11 +19,25 @@ def draw_window():  # displaying the window and the borders
 
 class Objects():
     def draw_obj(self, position):
-        surface.blit(
-            self.image, (position.x, position.y))
+        if self.alive == 1:
+            surface.blit(
+                self.image, (position.x, position.y))
 
-    def check_collision(self, target):
-        pass
+    def remove_obj(self, target_lst):
+        del self.image
+        self.position = pg.Rect(0, 0, 0, 0)
+        target_lst.pop()
+        self.alive = 0
+
+    def check_collision(self, target, target_lst):
+        if self.position.x == target.position.x and self.position.y == target.position.y:
+            print('\nCollision detected')
+            if target.alive:
+                target.remove_obj(target_lst)
+                print('Object removed')
+                self.collision = 1
+                return True
+        return False
 
 
 class Entity(Objects):
@@ -49,6 +63,12 @@ class Entity(Objects):
         self.image = pg.transform.scale(pg.image.load(
             os.path.join(imagefolder, image)), (settings['entity_width'], settings['entity_height']))
         self.rect = self.image.get_rect()
+
+        # set live
+        self.alive = 1
+
+        # set collision variable
+        self.collision = 0
 
     def random_walk(self, position, settings):  # moving randomly
         num = random.randrange(4)
@@ -88,6 +108,45 @@ class Entity(Objects):
 
         return self.pheromone
 
+    def return_home(self, settings):
+        self.pheromone_path(self.position.x, self.position.y, settings)
+
+        home = 300
+        if self.position.x > home and self.position.y > home:  # bottom right
+            self.position.x -= settings['velocity']
+            self.position.y -= settings['velocity']
+            return self.position.x, self.position.y
+        elif self.position.x > home and self.position.y < home:  # top right
+            self.position.x -= settings['velocity']
+            self.position.y += settings['velocity']
+            return self.position.x, self.position.y
+        elif self.position.x < home and self.position.y < home:  # top left
+            self.position.x += settings['velocity']
+            self.position.y += settings['velocity']
+            return self.position.x, self.position.y
+        elif self.position.x < home and self.position.y > home:  # bottom left
+            self.position.x += settings['velocity']
+            self.position.y -= settings['velocity']
+            return self.position.x, self.position.y
+        elif self.position.x == home and self.position.y > home:  # bottom
+            self.position.y -= settings['velocity']
+            return self.position.x, self.position.y
+        elif self.position.x == home and self.position.y < home:  # top
+            self.position.y += settings['velocity']
+            return self.position.x, self.position.y
+        elif self.position.x > home and self.position.y == home:  # right
+            self.position.x -= settings['velocity']
+            return self.position.x, self.position.y
+        elif self.position.x < home and self.position.y == home:  # left
+            self.position.x += settings['velocity']
+            return self.position.x, self.position.y
+        elif self.position.x == home and self.position.y == home:  # home
+            self.collision = 0
+            self.pheromone = []
+            return self.collision, self.pheromone
+        else:
+            print('Something horrible happend')
+
 
 class Food(Objects):
     def __init__(self, imagefolder, image):
@@ -105,6 +164,9 @@ class Food(Objects):
             settings['food_width'],
             settings['food_height'])
 
+        # set live
+        self.alive = 1
+
 
 class Home(Objects):
     def __init__(self, imagefolder, image):
@@ -114,6 +176,9 @@ class Home(Objects):
 
         self.position = pg.Rect(
             300 - settings['home_width'] // 2, 300 - settings['home_width'] // 2, settings['home_width'], settings['home_height'])
+
+        # set live
+        self.alive = 1
 
 
 # main function -----------------------------------------------------------
@@ -136,6 +201,12 @@ def simulation(settings):
 
     home = Home(settings['ASSETS_PATH'], 'orangepixel.jpg')
 
+    for ant in ants:
+        ant.draw_obj(ant.position)
+
+    for meal in meals:
+        meal.draw_obj(meal.position)
+
     # setting FPS and runnig simulation loop
     print('Simulation started')
     FramesPerSec = pg.time.Clock()
@@ -155,31 +226,42 @@ def simulation(settings):
 
         draw_window()
 
-        for ant in ants:
-            ant.draw_obj(ant.position)
-            ant.pheromone_path(
-                ant.position.x,
-                ant.position.y,
-                settings)
-            ant.random_walk(ant.position, settings)
-
         for meal in meals:
             meal.draw_obj(meal.position)
-            # meal.check_collision(ant)
 
         home.draw_obj(home.position)
 
+        for ant in ants:
+            for meal in meals:
+                collision = ant.check_collision(meal, meals)
+                if collision:
+                    print('returning home')
+                    ant.draw_obj(ant.position)
+                    ant.return_home(settings)
+            if ant.collision == 1:
+                ant.draw_obj(ant.position)
+                ant.return_home(settings)
+            else:
+                ant.draw_obj(ant.position)
+                ant.random_walk(ant.position, settings)
+
+        if len(meals) == 0:
+            for ant in ants:
+                ant.draw_obj(ant.position)
+                ant.return_home(settings)
+
         pg.display.update()
 
+    print('Aborted')
     pg.time.wait(1000)
     pg.quit()
 
 
 if __name__ == '__main__':
+    print('Initializing ...')
     pg.init()
 
     # creating window and the name showing in the window title
-    print('Initializing ...')
     surface = pg.display.set_mode(
         (settings['WIDTH'], settings['HEIGHT']))
     pg.display.set_caption('Simulation')

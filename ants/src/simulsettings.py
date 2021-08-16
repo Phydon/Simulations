@@ -50,19 +50,23 @@ settings['GREY'] = (50, 50, 50)
 settings['TURQUOISE'] = (64, 224, 208)
 
 # setting number of entities
-settings['number_ants'] = 20
-settings['number_food'] = 1
+settings['number_ants'] = 100
+settings['number_food'] = 40
 
 # setting properties
 settings['entity_width'] = 3
 settings['entity_height'] = 3
 settings['pheromone'] = []                   # pheromone path
-settings['pheromone_tail'] = 100             # pheromone tail length
-settings['velocity'] = 3                     # step size of entity
+settings['pheromone_tail'] = 200             # pheromone tail length
+settings['velocity'] = 1                     # step size of entity
 settings['start_variance'] = 100             # variance of starting position
 
 # setting food properties
-settings['food_width'] = 10
-settings['food_height'] = 10
+settings['food_width'] = 5
+settings['food_height'] = 5
 settings['food_position_x'] = randrange(1, 150)
 settings['food_position_y'] = randrange(1, 150)
+
+# setting home properties
+settings['home_width'] = 20
+settings['home_height'] = 20
